@@ -41,6 +41,10 @@ import {
   PolicyStatement,
 } from '@aws-cdk/aws-iam';
 import {
+  Asset,
+} from '@aws-cdk/aws-s3-assets';
+import {
+  Annotations,
   Construct,
   Duration,
   IConstruct,
@@ -241,6 +245,69 @@ export interface RepositoryRemovalPolicies {
 }
 
 /**
+ * The import types for the {@link RepositoryConfiguration}.
+ */
+export enum RepositoryConfigurationImportType {
+  APPEND = 'append',
+  REPLACE = 'replace',
+}
+
+/**
+ * Properties for {@link RepositoryConfiguration}.
+ */
+export interface RepositoryConfigurationProps {
+  /**
+   * The path to the settings file.
+   */
+  readonly settings: Asset;
+
+  /**
+   * The type of import operation to perform.
+   */
+  readonly importType: RepositoryConfigurationImportType;
+}
+
+/**
+ * Class containing the repository configuration.
+ */
+export class RepositoryConfiguration {
+
+  /**
+   * Creates a new {@link RepositoryConfiguration} from a settings export file.
+   *
+   * @param scope The scope that the {@link RepositoryConfiguration} should be in.
+   * @param filepath The path to the settings export file.
+   * @returns An instance of {@link RepositoryConfiguration}.
+   */
+  public static fromSettingsExportFile(
+    scope: Construct,
+    filepath: string,
+    importType: RepositoryConfigurationImportType): RepositoryConfiguration {
+    return new RepositoryConfiguration({
+      settings: new Asset(scope, 'RepositoryConfigurationSettingsFile', {
+        path: filepath,
+      }),
+      importType,
+    });
+  }
+
+  /**
+   * The S3 asset for the repository settings file.
+   */
+  public readonly settings: Asset;
+
+  /**
+   * The type of import operation to perform.
+   */
+  public readonly importType: RepositoryConfigurationImportType;
+
+  protected constructor(props: RepositoryConfigurationProps) {
+    this.settings = props.settings;
+    this.importType = props.importType;
+  }
+}
+
+/**
  * Properties for the Deadline repository
  */
 export interface RepositoryProps {
@@ -336,6 +403,13 @@ export interface RepositoryProps {
    * @default Duration.days(15) for the database
    */
   readonly backupOptions?: RepositoryBackupOptions;
+
+  /**
+   * The Repository configuration to import into the Repository.
+   *
+   * @default: No configuration is imported into the Repository.
+   */
+  readonly configuration?: RepositoryConfiguration;
 }
 
 /**
@@ -565,11 +639,21 @@ export class Repository extends Construct implements IRepository {
     }
     const repositoryInstallationPath = path.posix.normalize(path.posix.join(Repository.DEFAULT_FILE_SYSTEM_MOUNT_PATH, this.rootPrefix));
 
+    // Add arguments to import repository settings
+    const additionalInstallerArgs: Map<string, string> = new Map<string, string>();
+    if (props.configuration) {
+      const configPath = this.downloadRepositoryConfiguration(this.installerGroup, props.configuration);
+      additionalInstallerArgs.set('importrepositorysettings', 'true');
+      additionalInstallerArgs.set('repositorysettingsimportfile', `${configPath}`);
+      additionalInstallerArgs.set('repositorysettingsimportoperation', `${props.configuration.importType}`);
+    }
+
     // Updating the user data with deadline repository installation commands.
     this.configureRepositoryInstallerScript(
       this.installerGroup,
       repositoryInstallationPath,
       props.version,
+      additionalInstallerArgs,
     );
 
     this.configureSelfTermination();
@@ -778,7 +862,8 @@ export class Repository extends Construct implements IRepository {
   private configureRepositoryInstallerScript(
     installerGroup: AutoScalingGroup,
     installPath: string,
-    version: IVersion) {
+    version: IVersion,
+    additionalInstallerArgs?: Map<string, string>) {
     const installerScriptAsset = ScriptAsset.fromPathConvention(this, 'DeadlineRepositoryInstallerScript', {
       osType: installerGroup.osType,
       baseName: 'installDeadlineRepository',
@@ -790,6 +875,27 @@ export class Repository extends Construct implements IRepository {
     });
 
     this.databaseConnection.addInstallerDBArgs(installerGroup);
+
+    if (additionalInstallerArgs && additionalInstallerArgs.size > 0) {
+      const args: string[] = [];
+      additionalInstallerArgs.forEach((value, key) => {
+        args.push(`["--${key}"]=${value}`);
+      });
+      Annotations.of(this).addInfo(`Adding additional args ${args.join(' ')} to the installerGroup`);
+      installerGroup.userData.addCommands(
+        'configure_additional_installation_args(){',
+        `ADDITIONAL_INSTALLER_ARGS=( ${args.join(' ')} )`,
+        '}',
+        'export -f configure_additional_installation_args',
+      );
+    } else {
+      Annotations.of(this).addInfo('No additional installer args found');
+      installerGroup.userData.addCommands(
+        // Make the function basically a no-op
+        'configure_additional_installation_args(){ :; }',
+        'export -f configure_additional_installation_args',
+      );
+    }
 
     if (!version.linuxInstallers?.repository) {
       throw new Error('Version given to Repository must provide a Linux Repository installer.');
@@ -808,5 +914,18 @@ export class Repository extends Construct implements IRepository {
         linuxVersionString,
       ],
     });
+  }
+
+  /**
+   * Adds commands to download the Repository configuration file and returns the path it will be saved to.
+   *
+   * @param installerGroup The installer ASG.
+   * @param configuration The configuration to download.
+   * @returns The path where the file will be saved.
+   */
+  private downloadRepositoryConfiguration(installerGroup: AutoScalingGroup, configuration: RepositoryConfiguration): string {
+    const configPath = '/tmp/repositoryConfiguration.json';
+    installerGroup.userData.addCommands(`aws s3 cp ${configuration.settings.s3ObjectUrl} ${configPath}`);
+    return configPath;
   }
 }

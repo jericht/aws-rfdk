@@ -25,6 +25,10 @@ CONNECTION_FILE_PATH="$PREFIX/settings/connection.ini"
 declare -A INSTALLER_DB_ARGS
 configure_database_installation_args
 
+# Run the function created by the Repository construct to set up additional installer arguments.
+declare -A ADDITIONAL_INSTALLER_ARGS
+configure_additional_installation_args
+
 if test -f "$REPOSITORY_FILE_PATH"; then
     echo "File $REPOSITORY_FILE_PATH exists. Validating Database Connection"
     # File Exists
@@ -69,7 +73,15 @@ set +x
 
 INSTALLER_DB_ARGS_STRING=''
 for key in "${!INSTALLER_DB_ARGS[@]}"; do INSTALLER_DB_ARGS_STRING=$INSTALLER_DB_ARGS_STRING"${key} ${INSTALLER_DB_ARGS[$key]} "; done
-$REPO_INSTALLER --mode unattended --setpermissions false --prefix "$PREFIX" --installmongodb false --backuprepo false ${INSTALLER_DB_ARGS_STRING}
+
+# Build up additional args, if any
+ADDITIONAL_INSTALLER_ARGS_STRING=''
+if [[ "$(declare -p ADDITIONAL_INSTALLER_ARGS)" =~ "declare -A" ]]; then
+  for key in "${!ADDITIONAL_INSTALLER_ARGS[@]}"; do ADDITIONAL_INSTALLER_ARGS_STRING=$ADDITIONAL_INSTALLER_ARGS_STRING"${key} ${ADDITIONAL_INSTALLER_ARGS[$key]} "; done
+fi
+
+# Run the installer
+$REPO_INSTALLER --mode unattended --setpermissions false --prefix "$PREFIX" --installmongodb false --backuprepo false ${INSTALLER_DB_ARGS_STRING} ${ADDITIONAL_INSTALLER_ARGS_STRING}
 
 set -x
 
