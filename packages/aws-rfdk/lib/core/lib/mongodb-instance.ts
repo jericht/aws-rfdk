@@ -99,7 +99,7 @@ export interface MongoDbInstanceNewVolumeProps {
  */
 export interface MongoDbInstanceVolumeProps {
   /**
-   * An existing EBS volume. This volume is mounted to the {@link MongoDbInstace} using
+   * An existing EBS volume. This volume is mounted to the {@link MongoDbInstance} using
    * the scripting in {@link MountableEbs}, and is subject to the restrictions outlined
    * in that class.
    *
