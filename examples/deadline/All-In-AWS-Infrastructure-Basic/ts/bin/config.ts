@@ -21,7 +21,7 @@ class AppConfig {
    *
    * See https://www.awsthinkbox.com/end-user-license-agreement for the terms of the agreement.
    */
-  public readonly acceptAwsThinkboxEula: AwsThinkboxEulaAcceptance = AwsThinkboxEulaAcceptance.USER_REJECTS_AWS_THINKBOX_EULA;
+  public readonly acceptAwsThinkboxEula: AwsThinkboxEulaAcceptance = AwsThinkboxEulaAcceptance.USER_ACCEPTS_AWS_THINKBOX_EULA;
 
   /**
    * The version of Deadline to use on the render farm. Some examples of pinned version values are "10", "10.1", or

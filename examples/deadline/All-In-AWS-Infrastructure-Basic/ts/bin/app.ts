@@ -88,6 +88,7 @@ if (config.deployMongoDB) {
     env,
     vpc: network.vpc,
     databaseInstanceType: InstanceType.of(InstanceClass.R5, InstanceSize.LARGE),
+    dnsZone: network.dnsZone,
   });
 }
 

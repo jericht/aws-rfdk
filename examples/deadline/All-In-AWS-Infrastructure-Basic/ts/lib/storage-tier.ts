@@ -10,8 +10,7 @@ import {
 } from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
 import { DatabaseCluster } from '@aws-cdk/aws-docdb';
-import { FileSystem } from '@aws-cdk/aws-efs';
-import { IPrivateHostedZone } from '@aws-cdk/aws-route53';
+import { PrivateHostedZone } from '@aws-cdk/aws-route53';
 import { RemovalPolicy, Duration } from '@aws-cdk/core';
 import {
   IMountableLinuxFilesystem,
@@ -19,7 +18,9 @@ import {
   MongoDbPostInstallSetup,
   MongoDbSsplLicenseAcceptance,
   MongoDbVersion,
-  MountableEfs,
+  MountableNfs,
+  NfsInstance,
+  SessionManagerHelper,
   X509CertificatePem,
   X509CertificatePkcs12,
 } from 'aws-rfdk';
@@ -36,6 +37,11 @@ export interface StorageTierProps extends cdk.StackProps {
    * The VPC to deploy resources into.
    */
   readonly vpc: IVpc;
+
+  /**
+   * The DNS zone to deploy the storage server in.
+   */
+  readonly dnsZone: PrivateHostedZone;
 }
 
 /**
@@ -63,15 +69,17 @@ export abstract class StorageTier extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: StorageTierProps) {
     super(scope, id, props);
 
-    this.fileSystem = new MountableEfs(this, {
-      filesystem: new FileSystem(this, 'EfsFileSystem', {
-        vpc: props.vpc,
-        encrypted: true,
-        // TODO - Evaluate this removal policy for your own needs. This is set to DESTROY to
-        // cleanly remove everything when this stack is destroyed. If you would like to ensure
-        // that your data is not accidentally deleted, you should modify this value.
-        removalPolicy: RemovalPolicy.DESTROY,
-      }),
+    const filesystem = new NfsInstance(this, 'NFS', {
+      vpc: props.vpc,
+      dnsZone: props.dnsZone,
+      hostname: 'nfs',
+      mount: { location: 'mnt/nfs' },
+    });
+    filesystem.share('*');
+    SessionManagerHelper.grantPermissionsTo(filesystem.server.autoscalingGroup);
+
+    this.fileSystem = new MountableNfs(this, {
+      filesystem,
     });
   }
 }
@@ -149,11 +157,6 @@ export interface StorageTierMongoDBProps extends StorageTierProps {
    * Self-signed root CA to sign server certificates with.
    */
   readonly rootCa: X509CertificatePem;
-
-  /**
-   * Internal DNS zone for the VPC.
-   */
-  readonly dnsZone: IPrivateHostedZone;
 
   /**
    * Whether the SSPL license is accepted or not.
