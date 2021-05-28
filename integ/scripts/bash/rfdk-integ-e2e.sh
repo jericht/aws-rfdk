@@ -122,6 +122,20 @@ echo "Complete!"
 # Report results
 $BASH_SCRIPTS/report-test-results.sh
 
+# Print tmp files
+files=$(find $INTEG_TEMP_DIR)
+
+for file in ${files[@]}; do
+  if [[ -f $file  ]]; then
+    echo "======================"
+    echo "printing $file"
+    echo "=====================-"
+    cat $file
+  else
+    echo "Skipping $file since it is not a file..."
+  fi
+done
+
 echo "Cleaning up folders..."
 yarn run clean
 
