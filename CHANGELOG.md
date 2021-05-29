@@ -2,6 +2,102 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.33.0](https://github.com/aws/aws-rfdk/compare/v0.17.0...v0.33.0) (2021-05-29)
+
+
+### Supported CDK Version
+
+* [1.106.1](https://github.com/aws/aws-cdk/releases/tag/v1.106.1)
+
+
+### Officially Supported Deadline Versions
+
+* [10.1.9.2 to 10.1.15.2](https://docs.thinkboxsoftware.com/products/deadline/10.1/1_User%20Manual/manual/release-notes.html)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** CDK v1.96.0 modifies the API for DocumentDB DatabaseCluster. See
+our examples for an illustration of the code update required.
+* **core:** Stacks set up like our examples will see an error regarding being unable to
+ delete an export in use when deploying a stack update. To bypass, use cdk deploy's -e option
+ to deploy each stack upstream of the Mountable's stack before updating the Mountable's stack. e.g.
+- cdk deploy -e ComputeTier; cdk deploy -e ServiceTier; cdk deploy -e StorageTier
+* Repository constructs supplied with an EFS file-system must also pass an EFS Access Point
+- If your application provides an EFS file-system to a Repository construct, it must now also pass an
+  EFS Access Point to work properly with the Deadline container images.
+- Consult https://github.com/aws/aws-rfdk/blob/v0.27.0/packages/aws-rfdk/docs/upgrade/upgrading-0.27.md
+  for detailed instructions on how to upgrade
+
+### Features
+
+* **bin:** Add simpler way to invoke stage-deadline ([#90](https://github.com/aws/aws-rfdk/issues/90)) ([cb68992](https://github.com/aws/aws-rfdk/commit/cb68992de1c72f7997de6ff81f1b0c09e88dacaf))
+* **core:** add ability to resolve mount targets using EFS API ([#392](https://github.com/aws/aws-rfdk/issues/392)) ([726fa84](https://github.com/aws/aws-rfdk/commit/726fa848b6362b226e78aff9eec2c2544bc2aa74))
+* **core:** Add configurable expiry to X.509 certificates ([#242](https://github.com/aws/aws-rfdk/issues/242)) ([ae7c153](https://github.com/aws/aws-rfdk/commit/ae7c1536c009909fe72e45385e56271d3b1cab0e))
+* **core:** add PadEfsStorage construct ([#365](https://github.com/aws/aws-rfdk/issues/365)) ([c6334b6](https://github.com/aws/aws-rfdk/commit/c6334b6659f6892a1ba8e08f63db7334fcd6d690))
+* **core:** add vpcSubnets prop to HealthMonitor ([#310](https://github.com/aws/aws-rfdk/issues/310)) ([12b6d89](https://github.com/aws/aws-rfdk/commit/12b6d89503fafdb645c5721d3b07d301fcd72521)), closes [#305](https://github.com/aws/aws-rfdk/issues/305)
+* **core:** Addition of SessionManagerHelper ([#266](https://github.com/aws/aws-rfdk/issues/266)) ([08bd333](https://github.com/aws/aws-rfdk/commit/08bd333d65ac8821812fdd15520f8b3ff6a0c6dc)), closes [#265](https://github.com/aws/aws-rfdk/issues/265)
+* **core:** make cloudwatch agent install optional ([#338](https://github.com/aws/aws-rfdk/issues/338)) ([ac052ea](https://github.com/aws/aws-rfdk/commit/ac052ea67ab90e8c6ac18af71a950b20c68a24f1))
+* **deadline:** add ability to add spot event plugin managed policies to RenderQueue ([#141](https://github.com/aws/aws-rfdk/issues/141)) ([b2cf9e0](https://github.com/aws/aws-rfdk/commit/b2cf9e0cd8264b106e8f705f379181beb6916653))
+* **deadline:** add ability to import repository settings ([#395](https://github.com/aws/aws-rfdk/issues/395)) ([c55c078](https://github.com/aws/aws-rfdk/commit/c55c078f02b4b43c115abc09b77b8cd469ac9ccd))
+* **deadline:** add ConfigureSpotEventPlugin and SpotEventPluginFleet constructs ([#279](https://github.com/aws/aws-rfdk/issues/279)) ([b418e8a](https://github.com/aws/aws-rfdk/commit/b418e8a6857b7ee46a2fd984acb3f642231b6273))
+* **deadline:** add custom user data commands to Worker instance startup ([#239](https://github.com/aws/aws-rfdk/issues/239)) ([bdef391](https://github.com/aws/aws-rfdk/commit/bdef391df283864bbb0d05dea1e094785c333b33))
+* **deadline:** add option to the RenderQueue to use cachefilesd ([#367](https://github.com/aws/aws-rfdk/issues/367)) ([901b749](https://github.com/aws/aws-rfdk/commit/901b749b11a8de51797fc822c35447591f4bbe44))
+* **deadline:** add security group configuration for Repository and RenderQueue ([#319](https://github.com/aws/aws-rfdk/issues/319)) ([b7a43d6](https://github.com/aws/aws-rfdk/commit/b7a43d679be00ff4fc228ae0ee5bc3c6685a6025))
+* **deadline:** add security group property to ubl ([#396](https://github.com/aws/aws-rfdk/issues/396)) ([cf44a13](https://github.com/aws/aws-rfdk/commit/cf44a1364e8c732700b4d24e322b34a3c6444b7c))
+* **deadline:** add ThinkboxDockerImages construct ([#278](https://github.com/aws/aws-rfdk/issues/278)) ([9ea3bb4](https://github.com/aws/aws-rfdk/commit/9ea3bb47c97de4332edc1ce368dfbabff98be1a1))
+* **deadline:** add WorkerInstanceConfiguration construct ([#209](https://github.com/aws/aws-rfdk/issues/209)) ([bbb82b0](https://github.com/aws/aws-rfdk/commit/bbb82b0d1c68477d82e72420dc4fff7e0dd2f17b))
+* **deadline:** allow providing subnets for RenderQueue's ALB ([#264](https://github.com/aws/aws-rfdk/issues/264)) ([53088fb](https://github.com/aws/aws-rfdk/commit/53088fb788851cb8132dacfea77562951f1d89ca))
+* **deadline:** configure worker listener port ([#257](https://github.com/aws/aws-rfdk/issues/257)) ([6e518d4](https://github.com/aws/aws-rfdk/commit/6e518d4c9e85f53edfba4a9f8f97d7712d882fe1)), closes [#190](https://github.com/aws/aws-rfdk/issues/190)
+* **deadline:** versionquery construct ([#175](https://github.com/aws/aws-rfdk/issues/175)) ([78dcd86](https://github.com/aws/aws-rfdk/commit/78dcd860e6743094e123c12d8e7313e4d19af5a0)), closes [#176](https://github.com/aws/aws-rfdk/issues/176)
+* **examples:** added ec2 image builder example ([#292](https://github.com/aws/aws-rfdk/issues/292)) ([2375439](https://github.com/aws/aws-rfdk/commit/2375439abb39a29ec4ab40a27dadb18b44fcfc28))
+* **examples:** Demonstrate how to send an email alarm when EFS burst credits below a threshold ([#373](https://github.com/aws/aws-rfdk/issues/373)) ([cc5d372](https://github.com/aws/aws-rfdk/commit/cc5d372026a5b6c72d6285867af762e6200b5431))
+* add ability to use EFS access points ([#339](https://github.com/aws/aws-rfdk/issues/339)) ([544496c](https://github.com/aws/aws-rfdk/commit/544496cb67b3880fc187716a33ebeca595c108d7))
+* **examples:**  Added examples for Spot Event Plugin Deployment ([#180](https://github.com/aws/aws-rfdk/issues/180)) ([49e22bf](https://github.com/aws/aws-rfdk/commit/49e22bff5e89164e3f1daeeb24088e5112c7f8d8))
+* **integ:** use configurable version of Deadline for integration tests ([#160](https://github.com/aws/aws-rfdk/issues/160)) ([263021c](https://github.com/aws/aws-rfdk/commit/263021c1116ed81e091a7e9363122ace14e81e84))
+* Update stage-deadline script with new version index  ([#139](https://github.com/aws/aws-rfdk/issues/139)) ([9cbf99f](https://github.com/aws/aws-rfdk/commit/9cbf99f1a1f2effbfe85ab0ecbdcaecd418056db))
+* **integ:** add ability to use hook function before each component test  ([#155](https://github.com/aws/aws-rfdk/issues/155)) ([792586e](https://github.com/aws/aws-rfdk/commit/792586eeb5befedbe810ca6a91867ed006c029f0))
+
+
+### Bug Fixes
+
+* **core:** Added securty group property to HealthMonitor ([#408](https://github.com/aws/aws-rfdk/issues/408)) ([c2ed9e7](https://github.com/aws/aws-rfdk/commit/c2ed9e71e1bf60b01cee4621ac088d7cc08a7bbe))
+* **core:** improve security of mongodb setup script ([#445](https://github.com/aws/aws-rfdk/issues/445)) ([9148f25](https://github.com/aws/aws-rfdk/commit/9148f25c9864b6f09d53065b4ff4be74299f40f1))
+* **core:** Move mountable's asset to scope of target ([#369](https://github.com/aws/aws-rfdk/issues/369)) ([cb16918](https://github.com/aws/aws-rfdk/commit/cb16918dafd0d3caf93fed2a01b791e9281b602d))
+* **core:** PadEfsStorage lambdas need to depend on filesystem ([#376](https://github.com/aws/aws-rfdk/issues/376)) ([8890643](https://github.com/aws/aws-rfdk/commit/8890643f8100453a037ab35e4d9078c11c74924d))
+* **core:** Remove encryption on lifecycle SNS Topic ([#163](https://github.com/aws/aws-rfdk/issues/163)) ([5b663ca](https://github.com/aws/aws-rfdk/commit/5b663ca17713bdaf3f27aa568a6c4242ef2ceb61)), closes [#162](https://github.com/aws/aws-rfdk/issues/162)
+* **core:** windows cloudwatch agent install script ([#296](https://github.com/aws/aws-rfdk/issues/296)) ([478afce](https://github.com/aws/aws-rfdk/commit/478afce43c2a8460cc19f478c54d84b2691b6ebd)), closes [#295](https://github.com/aws/aws-rfdk/issues/295)
+* **deadline:** adding deadline version check for workers ([#100](https://github.com/aws/aws-rfdk/issues/100)) ([291f903](https://github.com/aws/aws-rfdk/commit/291f9033389157b745a0a812b4cb5584ea5fe05c))
+* **deadline:** adding version check for staging deadline ([#109](https://github.com/aws/aws-rfdk/issues/109)) ([75d0f9f](https://github.com/aws/aws-rfdk/commit/75d0f9fedce52de9dcfe73482965de923fa8941d))
+* **deadline:** allow zero-sized WorkerInstanceFleet ([#451](https://github.com/aws/aws-rfdk/issues/451)) ([0cc6723](https://github.com/aws/aws-rfdk/commit/0cc67238645e24805590412776d262c8e6b9ec49))
+* **deadline:** bad file path for Repository when using VersionQuery ([#252](https://github.com/aws/aws-rfdk/issues/252)) ([84a20de](https://github.com/aws/aws-rfdk/commit/84a20de3f3e9fc49017626f2233929cf03d2e277))
+* **deadline:** Disable client SSL config for HTTP Render Queue ([#167](https://github.com/aws/aws-rfdk/issues/167)) ([fe347fa](https://github.com/aws/aws-rfdk/commit/fe347fa135d1b5008adb7990b93600f6638afc83)), closes [#165](https://github.com/aws/aws-rfdk/issues/165)
+* **deadline:** Fix cyclic stack dependency when using UBL ([#246](https://github.com/aws/aws-rfdk/issues/246)) ([12f7db2](https://github.com/aws/aws-rfdk/commit/12f7db23cf18e71fb0fa4c7657fbe9f5455ac4f4))
+* **deadline:** Improve error message when querying non-existant Deadline version ([#262](https://github.com/aws/aws-rfdk/issues/262)) ([cabdb58](https://github.com/aws/aws-rfdk/commit/cabdb58efbaa152de94d83702d357da951c98204))
+* **deadline:** Incorrect Usage Based Licensing ports for Katana and Maxwell. ([e648711](https://github.com/aws/aws-rfdk/commit/e6487119444ccfef6fef26f17e47260522fbc292))
+* **deadline:** lock down DocDC engine to version 3.6.0 ([#230](https://github.com/aws/aws-rfdk/issues/230)) ([2f46944](https://github.com/aws/aws-rfdk/commit/2f46944ff35123a828be30a7bdf9e7e0ca944b14))
+* **deadline:** Relax UsageBasedLicensing.grantPortAccess() to IConnectable ([#352](https://github.com/aws/aws-rfdk/issues/352)) ([9f05768](https://github.com/aws/aws-rfdk/commit/9f0576856f949090658c7a14e79e02f081516b80))
+* **deadline:** remove requirement of aws-sdk in stage-deadline ([#181](https://github.com/aws/aws-rfdk/issues/181)) ([ea357fa](https://github.com/aws/aws-rfdk/commit/ea357fa4987bb1393344b31a946158cec258a2a8))
+* **deadline:** use HTTPS to download index ([#181](https://github.com/aws/aws-rfdk/issues/181)) ([01e4997](https://github.com/aws/aws-rfdk/commit/01e4997942602e2027f0334aa7aa2779a3d763b9))
+* **deadline:** use IMDSv2 endpoint in Repository scripting ([#436](https://github.com/aws/aws-rfdk/issues/436)) ([e7eddea](https://github.com/aws/aws-rfdk/commit/e7eddea0c37b143b2eed7db7ed62a42960cac95e))
+* **deadline:** VersionQuery cross-stack issue ([#306](https://github.com/aws/aws-rfdk/issues/306)) ([e6bb60d](https://github.com/aws/aws-rfdk/commit/e6bb60dc5cb186dca16b70daf4990e845b2825e1))
+* **deadline:** Windows Workers fail to deploy waiting for Deadline launcher service to restart ([#354](https://github.com/aws/aws-rfdk/issues/354)) ([a508ebb](https://github.com/aws/aws-rfdk/commit/a508ebb7828feb68599cd9d04c10cbe42decb64b)), closes [#353](https://github.com/aws/aws-rfdk/issues/353) [#312](https://github.com/aws/aws-rfdk/issues/312)
+* **examples:** bump cdk core module version ([#122](https://github.com/aws/aws-rfdk/issues/122)) ([20db251](https://github.com/aws/aws-rfdk/commit/20db251d6b8fc53f8560637818e53e47ae106b49))
+* **examples:** Fix errors in MongoDB Python example ([#322](https://github.com/aws/aws-rfdk/issues/322)) ([e1bfc79](https://github.com/aws/aws-rfdk/commit/e1bfc79b11c685d140057b7f58adcf49bfad23ab))
+* **examples:** Fix instructions and formatting in example app README ([#111](https://github.com/aws/aws-rfdk/issues/111)) ([f050f41](https://github.com/aws/aws-rfdk/commit/f050f41500b8d005d246c37e225895f0489debda)), closes [#105](https://github.com/aws/aws-rfdk/issues/105)
+* **examples:** make alarm email optional and add README instructions ([#381](https://github.com/aws/aws-rfdk/issues/381)) ([94abd59](https://github.com/aws/aws-rfdk/commit/94abd597f48c170d8e2ec14672ab4fb5fad78c65))
+* **examples:** Minor fixes to Python example app REAME ([84b5ffa](https://github.com/aws/aws-rfdk/commit/84b5ffac9e282510c71f8e0348d24a573b2b337a))
+* **integ:** capture exit codes of parallel tests ([#371](https://github.com/aws/aws-rfdk/issues/371)) ([276f76f](https://github.com/aws/aws-rfdk/commit/276f76f3fc1b9422a052642a1e11b1afe400af91))
+* **integ:** fix broken CDK app deny-list and error handling ([#435](https://github.com/aws/aws-rfdk/issues/435)) ([cfcb9bb](https://github.com/aws/aws-rfdk/commit/cfcb9bba99ec60a60cff2939f454be38a6795f28))
+* **integ:** fix when PRE_COMPONENT_HOOK is undefined ([#166](https://github.com/aws/aws-rfdk/issues/166)) ([b4bfd4e](https://github.com/aws/aws-rfdk/commit/b4bfd4ec475c3e94002ac961c3b2ce6c8abd65ee)), closes [#164](https://github.com/aws/aws-rfdk/issues/164)
+* **integ:** Ignore unbound RUN_TESTS_IN_PARALLEL variable ([#326](https://github.com/aws/aws-rfdk/issues/326)) ([76edf55](https://github.com/aws/aws-rfdk/commit/76edf559be8c4873403fe0938319f11612bb078a))
+* **integ:** supply Repository with EFS access point ([#343](https://github.com/aws/aws-rfdk/issues/343)) ([d6512af](https://github.com/aws/aws-rfdk/commit/d6512af790e68d3cd803649de15c888191755517))
+* **integ:** Support last changes in Deadline 10.1.11 ([#248](https://github.com/aws/aws-rfdk/issues/248)) ([dfdbda5](https://github.com/aws/aws-rfdk/commit/dfdbda518c43b981eb3835b23592896817b984cb))
+* allowing empty log group prefixes ([#87](https://github.com/aws/aws-rfdk/issues/87)) ([e53571c](https://github.com/aws/aws-rfdk/commit/e53571c7d249f8efb81517af7031f264d0baf1d2))
+
+
+* **deps:** bumping cdk from 1.94.1 to 1.96.0 ([#374](https://github.com/aws/aws-rfdk/issues/374)) ([4a216b1](https://github.com/aws/aws-rfdk/commit/4a216b1a9e2d9e30c5448c59ab5d204c611c422f))
+
 ## [0.32.0](https://github.com/aws/aws-rfdk/compare/v0.31.0...v0.32.0) (2021-05-17)
 
 
